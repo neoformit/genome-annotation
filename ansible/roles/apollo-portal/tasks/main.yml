@@ -84,6 +84,10 @@
 - name: run apollo_portal setup script
   command: "bash {{ setup_root }}/setup.sh"
 
+- name: build certbot domains list
+  set_fact:
+    certbot_domains_list: "{{ [inventory_hostname] + certbot_extra_domains }}"
+
 - name: create and install SSL certificate with letsencrypt
   command: |
     certbot \
@@ -92,7 +96,7 @@
     --agree-tos \
     --redirect \
     --email {{ certbot_renew_email }} \
-    -d {{ inventory_hostname }}
+    -d {{ certbot_domains_list | join(',') }}
   when: certbot_ssl
 
 - name: "add extra domain {{ portal_extra_domain }} to letsencrypt certificate {{ inventory_hostname }}"

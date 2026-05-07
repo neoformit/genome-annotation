@@ -163,9 +163,9 @@ terraform import openstack_blockstorage_volume_v3.jbrowse2_build_volume  3655342
 terraform import openstack_blockstorage_volume_v3.apollo_build_volume    93fd02aa-7f05-4a6e-ad53-b40de9311802
 
 echo "=== Volume Attachments ==="
-terraform import openstack_compute_volume_attach_v2.jbrowse_build_volume    626595ae-d16d-44f0-a3f7-1da7edb3ef29/700f6daa-f3e0-4312-84b5-a2a315597c60
-terraform import openstack_compute_volume_attach_v2.jbrowse2_build_volume   afddb7fe-6a20-40ef-ab83-bf677591c028/2b0847b2-dfe2-4618-9a7e-ec7f9855ed78
-terraform import openstack_compute_volume_attach_v2.apollo_011_volume_attach 74b7d27f-af7a-45d9-806b-edf7db83c7b7/59bcff5b-313c-44e8-b7b7-94ef98c50e94
+terraform import openstack_compute_volume_attach_v2.jbrowse_build_volume    626595ae-d16d-44f0-a3f7-1da7edb3ef29/57e28bd4-73b3-4260-b517-596aadbafb92
+terraform import openstack_compute_volume_attach_v2.jbrowse2_build_volume   afddb7fe-6a20-40ef-ab83-bf677591c028/3655342d-a6d8-4522-8269-2674a095e479
+terraform import openstack_compute_volume_attach_v2.apollo_011_volume_attach 74b7d27f-af7a-45d9-806b-edf7db83c7b7/93fd02aa-7f05-4a6e-ad53-b40de9311802
 
 echo ""
 echo "=== Import complete. Running terraform plan to verify... ==="

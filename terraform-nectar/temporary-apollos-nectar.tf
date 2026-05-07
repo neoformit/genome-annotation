@@ -36,7 +36,7 @@ resource "openstack_compute_instance_v2" "temporary_apollo_vms" {
 
 # for each VM create a floating IP in ardc-syd IP pool
 resource "openstack_networking_floatingip_v2" "temporary_apollo_fips" {
-    for_each = openstack_compute_instance_v2.temporary_apollo_vms
+    for_each = local.temporary_apollo_numbers
     pool = "ardc-syd"  # IP in ardc-syd availability zone IP pool
 
     # prevent the floating IP from being destroyed when the VM is destroyed
@@ -47,15 +47,15 @@ resource "openstack_networking_floatingip_v2" "temporary_apollo_fips" {
 
 # fetch the port for each VM instance based on the fixed IP
 data "openstack_networking_port_v2" "temporary_apollo_ports" {
-    for_each = openstack_compute_instance_v2.temporary_apollo_vms
+    for_each = local.temporary_apollo_numbers
     fixed_ip = openstack_compute_instance_v2.temporary_apollo_vms[each.key].network[0].fixed_ip_v4
 }
 
 # for each VM, attach the floating IP using the VM's port ID
 resource "openstack_networking_floatingip_associate_v2" "temporary_apollo_fips_associate" {
-    for_each = openstack_networking_floatingip_v2.temporary_apollo_fips
+    for_each = local.temporary_apollo_numbers
 
-    floating_ip = each.value.address
+    floating_ip = openstack_networking_floatingip_v2.temporary_apollo_fips[each.key].address
     port_id     = data.openstack_networking_port_v2.temporary_apollo_ports[each.key].id
 
     # ensure that the floating IP is reassociated with the new VM when the VM is recreated

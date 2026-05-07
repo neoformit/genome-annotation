@@ -52,6 +52,37 @@ locals {
         "999" = "r3.small"
     }
 
+    # fixed IPs for apollo VMs on the internal network — used as fallback in port data source
+    # lookups during `terraform import` when not all VMs are in state yet. Keep in sync when
+    # VMs are rebuilt with a new IP.
+    internal_apollo_fixed_ips = {
+        "001" = "192.168.0.116",
+        "004" = "192.168.0.136",
+        "011" = "192.168.0.46"
+    }
+    client_apollo_fixed_ips = {
+        "003" = "192.168.0.132",
+        "016" = "192.168.0.76",
+        "017" = "192.168.0.127",
+        "018" = "192.168.0.120",
+        "019" = "192.168.0.200",
+        "021" = "192.168.0.251",
+        "022" = "192.168.0.93",
+        "024" = "192.168.0.237",
+        "025" = "192.168.0.137",
+        "026" = "192.168.0.245",
+        "029" = "192.168.0.48",
+        "030" = "192.168.0.131",
+        "031" = "192.168.0.139",
+        "033" = "192.168.0.224",
+        "034" = "192.168.0.108",
+        "035" = "192.168.0.214",
+        "036" = "192.168.0.90"
+    }
+    temporary_apollo_fixed_ips = {
+        "999" = "192.168.0.171"
+    }
+
     # security groups required for apollo instances (DO NOT CHANGE UNLESS NEEDED for Grafana for eg)
     # while some are only required for specific instances,
     # for managing many apollos, they can all have the additional groups

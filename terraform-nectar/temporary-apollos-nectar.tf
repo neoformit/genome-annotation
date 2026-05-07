@@ -48,7 +48,7 @@ resource "openstack_networking_floatingip_v2" "temporary_apollo_fips" {
 # fetch the port for each VM instance based on the fixed IP
 data "openstack_networking_port_v2" "temporary_apollo_ports" {
     for_each = local.temporary_apollo_numbers
-    fixed_ip = openstack_compute_instance_v2.temporary_apollo_vms[each.key].network[0].fixed_ip_v4
+    fixed_ip = try(openstack_compute_instance_v2.temporary_apollo_vms[each.key].network[0].fixed_ip_v4, local.temporary_apollo_fixed_ips[each.key])
 }
 
 # for each VM, attach the floating IP using the VM's port ID

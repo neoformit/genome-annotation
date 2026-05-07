@@ -39,7 +39,7 @@ resource "openstack_networking_floatingip_v2" "internal_apollo_fips" {
 data "openstack_networking_port_v2" "internal_apollo_ports" {
     for_each = local.internal_apollo_numbers
 
-    fixed_ip = openstack_compute_instance_v2.internal_apollo_vms[each.key].network[0].fixed_ip_v4
+    fixed_ip = try(openstack_compute_instance_v2.internal_apollo_vms[each.key].network[0].fixed_ip_v4, local.internal_apollo_fixed_ips[each.key])
 }
 
 # For each VM, attach the floating IP using the VM's port ID

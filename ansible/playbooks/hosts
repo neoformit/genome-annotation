@@ -44,6 +44,7 @@ apollo-034.genome.edu.au ansible_host=apollo-034 allowed_groups="ubuntu apollo_a
 apollo-035.genome.edu.au ansible_host=apollo-035 allowed_groups="ubuntu apollo_admin backup_user nbenth_user"
 apollo-036.genome.edu.au ansible_host=apollo-036 allowed_groups="ubuntu apollo_admin backup_user baxtergroup_user"
 apollo-037.genome.edu.au ansible_host=apollo-037 allowed_groups="ubuntu apollo_admin backup_user baxtergroup_user"
+apollo-038.genome.edu.au ansible_host=apollo-038 allowed_groups="ubuntu apollo_admin backup_user plantgen_user"
 
 [apollovms:children]
 internalapollos

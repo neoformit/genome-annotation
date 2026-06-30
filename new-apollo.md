@@ -86,9 +86,19 @@ The SSH config on `apollo-backup` handles key selection automatically (via the `
 
 In the `[clientapollos]` section, add:
 ```
-apollo-XXX.genome.edu.au ansible_host=apollo-XXX
+apollo-XXX.genome.edu.au ansible_host=apollo-XXX allowed_groups="ubuntu apollo_admin backup_user <CLIENT>_user"
 ```
-The build script will automatically add it to `[apollovms]` at the end of the build.
+
+The `allowed_groups` field is **required** — it controls which Unix groups are permitted SSH access by the SSH-hardening role. The standard four entries are:
+
+- `ubuntu` — the default Nectar VM user
+- `apollo_admin` — sysadmin access for the Apollo service team
+- `backup_user` — used by the `apollo-backup` server's rsync cron jobs
+- `<CLIENT>_user` — the client-specific group (e.g. `plantgen_user`, `baxtergroup_user`). This group is created by the build playbook and owns the client's `apollo_data` / `sourcedata` on NFS.
+
+The `<CLIENT>_user` name conventionally matches the custom hostname (e.g. `plantgen` → `plantgen_user`), but may differ if the client group is named after the lab/project rather than the subdomain. Check existing entries for the pattern.
+
+The build script will automatically add the host to `[apollovms]` at the end of the build.
 
 **Step 3c — Run the main build script:**
 

@@ -5,7 +5,7 @@
 The Australian Apollo Service runs on Nectar Research Cloud. Infrastructure is provisioned with Terraform and configured with Ansible. This guide covers deploying a fresh client-facing Apollo 2 VM end-to-end — from Nectar VM creation through to a live, monitored, backed-up Apollo instance.
 
 **Let's assume the following:**
-- Apollo number: **`XXX`** (next available number not already in `client_apollo_numbers` — current highest is `036`)
+- Apollo number: **`XXX`** (next available number not already in `client_apollo_numbers`)
 - Custom hostname: **`<CUSTOM-HOSTNAME>`** (e.g. `griffith-lab` → `griffith-lab.genome.edu.au`)
 - VM flavor: **r3.medium** (default — 4 vCPU / 16 GB RAM; use `r3.large` for high-load clients)
 - Deployment type: **Fresh** (no DB restore; see note at end for migration/restore path)

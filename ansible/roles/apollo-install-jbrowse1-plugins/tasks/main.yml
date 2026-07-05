@@ -1,0 +1,67 @@
+---
+# Install JBrowse1 plugins into the JBrowse embedded inside Apollo's WAR.
+# Runs after apollo-deploy-war/apollo-restart-tomcat so the extracted
+# webapps/apollo/jbrowse/ tree is present.
+
+- name: Skip plugin install when no plugins are configured
+  meta: end_play
+  when: apollo_jbrowse1_plugins | length == 0
+
+- name: Wait for Tomcat to finish extracting the Apollo WAR
+  wait_for:
+    path: "{{ apollo_webapp_path }}/jbrowse/index.html"
+    state: present
+    timeout: "{{ apollo_webapp_extract_timeout }}"
+
+- name: Ensure JBrowse plugins directory exists
+  file:
+    path: "{{ apollo_webapp_path }}/jbrowse/plugins"
+    state: directory
+    owner: "{{ apollo_tomcat_user }}"
+    group: "{{ apollo_tomcat_group }}"
+    mode: "0755"
+
+- name: Clone JBrowse1 plugins into Apollo's embedded JBrowse
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ apollo_webapp_path }}/jbrowse/plugins/{{ item.name }}"
+    version: "{{ item.version | default('master') }}"
+    force: no
+    update: yes
+  loop: "{{ apollo_jbrowse1_plugins }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: plugin_clones
+  notify: restart tomcat9 for jbrowse1 plugins
+
+- name: Ensure jbrowse.conf exists (Apollo ships one, but be defensive)
+  file:
+    path: "{{ apollo_webapp_path }}/jbrowse/jbrowse.conf"
+    state: touch
+    owner: "{{ apollo_tomcat_user }}"
+    group: "{{ apollo_tomcat_group }}"
+    mode: "0644"
+  changed_when: false
+
+- name: Register plugins in jbrowse.conf
+  blockinfile:
+    path: "{{ apollo_webapp_path }}/jbrowse/jbrowse.conf"
+    marker: "# {mark} ANSIBLE MANAGED PLUGIN: {{ item.name }}"
+    block: |
+      [plugins.{{ item.name }}]
+      location = plugins/{{ item.name }}
+      {% for k, v in (item.config | default({})).items() %}
+      {{ k }} = {{ v }}
+      {% endfor %}
+  loop: "{{ apollo_jbrowse1_plugins }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: restart tomcat9 for jbrowse1 plugins
+
+- name: Fix ownership on the plugins tree so Tomcat can serve it
+  file:
+    path: "{{ apollo_webapp_path }}/jbrowse/plugins"
+    state: directory
+    owner: "{{ apollo_tomcat_user }}"
+    group: "{{ apollo_tomcat_group }}"
+    recurse: yes

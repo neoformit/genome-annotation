@@ -52,4 +52,3 @@ jbrowse_builds:
         repo: "https://github.com/elsiklab/multibigwig"
       - name: FeatureSequence
         repo: "https://github.com/tsaari88/FeatureSequence"
-

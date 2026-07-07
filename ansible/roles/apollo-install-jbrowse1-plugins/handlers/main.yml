@@ -1,5 +1,0 @@
----
-- name: restart tomcat9 for jbrowse1 plugins
-  systemd:
-    state: restarted
-    name: tomcat9

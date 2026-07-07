@@ -85,9 +85,6 @@
         name: apollo-restart-tomcat
       tags: ['deploy']
     - import_role:
-        name: apollo-install-jbrowse1-plugins
-      tags: ['deploy']
-    - import_role:
         name: common-restart-nginx
       tags: ['deploy']
     # add a delay here to ensure that tomcat (on restart) has finished

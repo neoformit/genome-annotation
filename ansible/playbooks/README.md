@@ -311,26 +311,57 @@ On `apollo-deploy`, the tarballs live in `/opt/apollo_files/` with descriptive f
     └── Apollo-2.8.1.tar.gz -> ../Apollo-<active-variant>.tar.gz
 ```
 
-**To switch which variant Apollo builds/redeploys use**, swap the symlink and re-run the Apollo deploy against the target host(s):
+**To switch which variant Apollo builds/redeploys use**, swap the symlink and get the new tarball onto the target host, then redeploy.
+
+> **Important gotcha:** [apollo-copy-tarred-build](../roles/apollo-copy-tarred-build/) (the role that ships the tarball from the deployment server onto the target and extracts it into `/opt/`) has **no tag**. That means `--tags deploy` on `playbook-build-nectar-apollo.yml` **skips** the tarball copy and only re-runs the WAR-copy → Tomcat restart chain. So a symlink swap on its own is invisible to `--tags deploy`. You have two working recipes:
+
+**Recipe A — full playbook (simplest, ~15 min):**
 
 ```
-# Point the deploy symlink at the methylation-baked variant
 ssh apollo-deploy 'sudo ln -sfn ../Apollo-2.8.1+methylation-Ubuntu-deploy-YYYYMMDD.tar.gz \
                                  /opt/apollo_files/deploy/Apollo-2.8.1.tar.gz'
 
-# Redeploy Apollo (deploy tag only - no full rebuild needed)
+ansible-playbook playbook-build-nectar-apollo.yml \
+  --inventory-file hosts \
+  --limit apollo-XXX.genome.edu.au \
+  --extra-vars "apollo_instance_number=XX apollo_subdomain_name=<subdomain>"
+```
+
+No `--tags deploy` — the whole playbook runs. Nearly all pre-deploy steps are idempotent no-ops (users, packages, certs, etc.), so on an already-provisioned Apollo the effective work is: `apollo-copy-tarred-build` (copies new tarball + extracts) → the deploy chain (war copy → Tomcat restart → nginx restart). The bulk of runtime is Tomcat re-extracting the WAR (~30s).
+
+**Recipe B — manual SCP + `--tags deploy` (faster, ~5 min, matches production practice):**
+
+```
+# 1. Update the deploy symlink (source of truth) even if you're bypassing it below
+ssh apollo-deploy 'sudo ln -sfn ../Apollo-2.8.1+methylation-Ubuntu-deploy-YYYYMMDD.tar.gz \
+                                 /opt/apollo_files/deploy/Apollo-2.8.1.tar.gz'
+
+# 2. Ship the tarball onto the target and extract into /opt/ manually
+ssh apollo-deploy 'scp /opt/apollo_files/Apollo-2.8.1+methylation-Ubuntu-deploy-YYYYMMDD.tar.gz \
+                       ubuntu@apollo-XXX.genome.edu.au:/tmp/Apollo-2.8.1.tar.gz'
+ssh ubuntu@apollo-XXX.genome.edu.au 'sudo mv /tmp/Apollo-2.8.1.tar.gz /opt/Apollo-2.8.1.tar.gz
+                                     sudo rm -rf /opt/Apollo-2.8.1
+                                     cd /opt && sudo tar -xzf Apollo-2.8.1.tar.gz
+                                     sudo chown -R root:root /opt/Apollo-2.8.1'
+
+# 3. Now `--tags deploy` sees a new WAR at /opt/Apollo-2.8.1/target/apollo-2.8.1.war
+#    and does the war copy + Tomcat restart + nginx restart
 ansible-playbook playbook-build-nectar-apollo.yml \
   --inventory-file hosts \
   --limit apollo-XXX.genome.edu.au \
   --tags deploy \
   --extra-vars "apollo_instance_number=XX apollo_subdomain_name=<subdomain>"
-
-# Verify plugin is in the extracted webapp bundles on the target
-ssh apollo-XXX 'sudo grep -c MethylationPlugin \
-                     /var/lib/tomcat9/webapps/apollo/jbrowse/dist/main.bundle.js'
 ```
 
-Rollback is symmetric: `ln -sfn` back at the stock tarball and re-run the deploy.
+Verify (either recipe):
+
+```
+ssh ubuntu@apollo-XXX.genome.edu.au \
+  'sudo grep -c MethylationPlugin /var/lib/tomcat9/webapps/apollo/jbrowse/dist/main.bundle.js'
+# > 0 means the plugin is in the extracted webapp bundles
+```
+
+Rollback is symmetric: `ln -sfn` back at the stock tarball, then follow Recipe A (or Recipe B if you'd rather manually SCP).
 
 **Which Apollo VMs get which variant** is a matter of the symlink state at deploy time. Switching the symlink affects **all** subsequent Apollo builds/redeploys until it is switched back. Client-specific plugin needs should either be scheduled with this in mind, or the target host should override `apollo_version` (in a per-host var) so it resolves to a different tarball filename — see `apollo_copy_war_name` in [apollo-copy-tarred-build/defaults/main.yml](../roles/apollo-copy-tarred-build/defaults/main.yml).
 

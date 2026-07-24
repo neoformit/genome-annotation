@@ -76,6 +76,8 @@ Allow DNS to propagate before proceeding.
 
 **Prerequisite:** `VAULT_PASSWORD` environment variable must be set.
 
+**NOTE: before running, rotate the default admin password in the ansible vault on apollo-deploy (required the VAULT_PASSWORD) - you'll need to pass this to the data technician (Mike) and ensure that it's stored somewhere safe.**
+
 **Step 3a — Test SSH access:**
 ```bash
 ssh ubuntu@apollo-XXX.genome.edu.au
